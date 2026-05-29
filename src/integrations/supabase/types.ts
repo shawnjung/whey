@@ -14,16 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      food_logs: {
+        Row: {
+          created_at: string
+          food_name: string
+          id: string
+          logged_at: string
+          protein_g: number
+          quantity: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          food_name: string
+          id?: string
+          logged_at?: string
+          protein_g: number
+          quantity?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          food_name?: string
+          id?: string
+          logged_at?: string
+          protein_g?: number
+          quantity?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          activity_level: Database["public"]["Enums"]["activity_level"] | null
+          age: number | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          goal_type: Database["public"]["Enums"]["goal_type"] | null
+          height_cm: number | null
+          id: string
+          onboarded: boolean
+          protein_goal_g: number
+          sex: Database["public"]["Enums"]["sex_type"] | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          activity_level?: Database["public"]["Enums"]["activity_level"] | null
+          age?: number | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          goal_type?: Database["public"]["Enums"]["goal_type"] | null
+          height_cm?: number | null
+          id: string
+          onboarded?: boolean
+          protein_goal_g?: number
+          sex?: Database["public"]["Enums"]["sex_type"] | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          activity_level?: Database["public"]["Enums"]["activity_level"] | null
+          age?: number | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          goal_type?: Database["public"]["Enums"]["goal_type"] | null
+          height_cm?: number | null
+          id?: string
+          onboarded?: boolean
+          protein_goal_g?: number
+          sex?: Database["public"]["Enums"]["sex_type"] | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      activity_level:
+        | "sedentary"
+        | "light"
+        | "moderate"
+        | "active"
+        | "very_active"
+      friendship_status: "pending" | "accepted"
+      goal_type: "cut" | "maintain" | "bulk"
+      sex_type: "male" | "female" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +262,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      activity_level: [
+        "sedentary",
+        "light",
+        "moderate",
+        "active",
+        "very_active",
+      ],
+      friendship_status: ["pending", "accepted"],
+      goal_type: ["cut", "maintain", "bulk"],
+      sex_type: ["male", "female", "other"],
+    },
   },
 } as const
