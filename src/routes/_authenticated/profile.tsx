@@ -57,6 +57,7 @@ function ProfilePage() {
   }
 
   async function recalc() {
+    if (!profile) return;
     if (!profile.weight_kg || !profile.activity_level || !profile.goal_type) return;
     const g = calculateProteinGoal(Number(profile.weight_kg), profile.activity_level, profile.goal_type);
     set("protein_goal_g", g);
