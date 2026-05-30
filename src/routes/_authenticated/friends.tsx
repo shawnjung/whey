@@ -53,11 +53,11 @@ function FriendsPage() {
 
   async function sendRequest(id: string) {
     const { error } = await supabase.from("friendships").insert({ requester_id: me, addressee_id: id });
-    if (error) toast.error(error.message); else { toast.success("Request sent"); load(); setResults([]); setSearch(""); }
+    if (error) toast.error(error.message); else { toast.success(t("request_sent")); load(); setResults([]); setSearch(""); }
   }
   async function accept(id: string) {
     await supabase.from("friendships").update({ status: "accepted" }).eq("id", id);
-    toast.success("Friend added"); load();
+    toast.success(t("friend_added")); load();
   }
   async function remove(id: string) {
     await supabase.from("friendships").delete().eq("id", id);
