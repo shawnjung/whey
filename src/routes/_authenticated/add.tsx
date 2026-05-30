@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateProtein } from "@/lib/protein.functions";
 import { toast } from "sonner";
-import { Sparkles, Pencil, ArrowLeft } from "lucide-react";
+import { Sparkles, Pencil, ArrowLeft, ImagePlus, X } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/add")({
@@ -24,13 +24,26 @@ function AddPage() {
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<Item[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const estimate = useServerFn(estimateProtein);
 
+  function onPickImage(file: File | null | undefined) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("image_too_large"));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImageDataUrl(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
+
   async function runEstimate() {
-    if (!description.trim()) return;
+    if (!description.trim() && !imageDataUrl) return;
     setBusy(true);
     try {
-      const result = await estimate({ data: { description } });
+      const result = await estimate({ data: { description, image_data_url: imageDataUrl ?? undefined } });
       setItems(result.items);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : t("estimate_failed"));
@@ -84,7 +97,44 @@ function AddPage() {
                 className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none resize-none"
               />
             </label>
-            <button disabled={busy || !description.trim()} onClick={runEstimate} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { onPickImage(e.target.files?.[0]); e.target.value = ""; }}
+            />
+            {imageDataUrl ? (
+              <div className="relative rounded-2xl overflow-hidden ring-1 ring-border">
+                <img src={imageDataUrl} alt="food preview" className="w-full max-h-64 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImageDataUrl(null)}
+                  className="absolute top-2 right-2 size-8 rounded-full bg-background/90 grid place-items-center ring-1 ring-border"
+                  aria-label={t("remove_photo")}
+                >
+                  <X className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium ring-1 ring-border"
+                >
+                  {t("change_photo")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-2xl bg-surface ring-1 ring-border py-3.5 font-medium flex items-center justify-center gap-2 text-muted-foreground"
+              >
+                <ImagePlus className="size-4" /> {t("add_photo")}
+              </button>
+            )}
+
+            <button disabled={busy || (!description.trim() && !imageDataUrl)} onClick={runEstimate} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
               {busy ? t("estimating") : t("estimate_protein")}
             </button>
 
