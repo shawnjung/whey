@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculateProteinGoal, type ActivityLevel, type GoalType } from "@/lib/goal";
 import { Avatar } from "@/components/Avatar";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, Camera, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — Whey" }] }),
