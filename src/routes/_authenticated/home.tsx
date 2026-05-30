@@ -5,6 +5,7 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { Avatar } from "@/components/Avatar";
 import { startOfTodayISO } from "@/lib/goal";
 import { Check, Plus, Utensils } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — Whey" }] }),
