@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "@/components/Avatar";
 import { toast } from "sonner";
 import { Check, X, UserPlus, UserMinus, Search } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/friends")({
   head: () => ({ meta: [{ title: "Friends — Whey" }] }),
@@ -14,6 +15,7 @@ type Profile = { id: string; display_name: string; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" };
 
 function FriendsPage() {
+  const { t } = useT();
   const [me, setMe] = useState<string>("");
   const [friendships, setFriendships] = useState<Friendship[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
@@ -51,11 +53,11 @@ function FriendsPage() {
 
   async function sendRequest(id: string) {
     const { error } = await supabase.from("friendships").insert({ requester_id: me, addressee_id: id });
-    if (error) toast.error(error.message); else { toast.success("Request sent"); load(); setResults([]); setSearch(""); }
+    if (error) toast.error(error.message); else { toast.success(t("request_sent")); load(); setResults([]); setSearch(""); }
   }
   async function accept(id: string) {
     await supabase.from("friendships").update({ status: "accepted" }).eq("id", id);
-    toast.success("Friend added"); load();
+    toast.success(t("friend_added")); load();
   }
   async function remove(id: string) {
     await supabase.from("friendships").delete().eq("id", id);
@@ -69,7 +71,7 @@ function FriendsPage() {
   return (
     <div>
       <header className="pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Friends</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("friends")}</h1>
       </header>
 
       <section className="px-4 mb-6">
@@ -80,18 +82,18 @@ function FriendsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && searchUsers()}
-              placeholder="Search by name"
+              placeholder={t("search_by_name")}
               className="w-full rounded-2xl bg-surface pl-10 pr-4 py-3 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none"
             />
           </div>
-          <button onClick={searchUsers} className="rounded-2xl bg-foreground text-brand px-5 font-medium">Search</button>
+          <button onClick={searchUsers} className="rounded-2xl bg-foreground text-brand px-5 font-medium">{t("search")}</button>
         </div>
         {results.length > 0 && (
           <div className="mt-3 space-y-2">
             {results.map((p) => (
               <div key={p.id} className="bg-surface rounded-2xl p-3 ring-1 ring-black/5 flex items-center justify-between">
                 <div className="flex items-center gap-3"><Avatar name={p.display_name} url={p.avatar_url} size={40} /><span className="font-medium">{p.display_name}</span></div>
-                <button onClick={() => sendRequest(p.id)} className="rounded-full bg-brand text-brand-ink px-3 py-1.5 text-xs font-semibold flex items-center gap-1"><UserPlus className="size-3" /> Add</button>
+                <button onClick={() => sendRequest(p.id)} className="rounded-full bg-brand text-brand-ink px-3 py-1.5 text-xs font-semibold flex items-center gap-1"><UserPlus className="size-3" /> {t("add")}</button>
               </div>
             ))}
           </div>
@@ -99,7 +101,7 @@ function FriendsPage() {
       </section>
 
       {pending.length > 0 && (
-        <Section title="Requests">
+        <Section title={t("requests")}>
           {pending.map((f) => {
             const p = profiles[f.requester_id];
             if (!p) return null;
@@ -117,23 +119,23 @@ function FriendsPage() {
       )}
 
       {sent.length > 0 && (
-        <Section title="Pending">
+        <Section title={t("pending")}>
           {sent.map((f) => {
             const p = profiles[f.addressee_id];
             if (!p) return null;
             return (
               <div key={f.id} className="bg-surface rounded-2xl p-3 ring-1 ring-black/5 flex items-center justify-between">
                 <div className="flex items-center gap-3"><Avatar name={p.display_name} url={p.avatar_url} size={40} /><span className="font-medium">{p.display_name}</span></div>
-                <span className="text-xs text-muted-foreground">Awaiting…</span>
+                <span className="text-xs text-muted-foreground">{t("awaiting")}</span>
               </div>
             );
           })}
         </Section>
       )}
 
-      <Section title={`Your crew (${accepted.length})`}>
+      <Section title={t("your_crew", { n: accepted.length })}>
         {accepted.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No friends yet. Search above to find some.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t("no_friends_search")}</p>
         ) : accepted.map((f) => {
           const otherId = f.requester_id === me ? f.addressee_id : f.requester_id;
           const p = profiles[otherId];

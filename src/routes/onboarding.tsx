@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateProteinGoal, type ActivityLevel, type GoalType } from "@/lib/goal";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome — Whey" }] }),
@@ -13,22 +14,9 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-const activityOptions: { value: ActivityLevel; label: string; hint: string }[] = [
-  { value: "sedentary", label: "Sedentary", hint: "Mostly desk-bound" },
-  { value: "light", label: "Light", hint: "Walks, light workouts" },
-  { value: "moderate", label: "Moderate", hint: "3–5 sessions/week" },
-  { value: "active", label: "Active", hint: "6+ sessions/week" },
-  { value: "very_active", label: "Very active", hint: "Daily training" },
-];
-
-const goalOptions: { value: GoalType; label: string; emoji: string }[] = [
-  { value: "cut", label: "Cut", emoji: "🔻" },
-  { value: "maintain", label: "Maintain", emoji: "⚖️" },
-  { value: "bulk", label: "Bulk", emoji: "🔺" },
-];
-
 function Onboarding() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [weight, setWeight] = useState("");
@@ -40,6 +28,20 @@ function Onboarding() {
   const [customGoal, setCustomGoal] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
+  const activityOptions = useMemo<{ value: ActivityLevel; label: string; hint: string }[]>(() => [
+    { value: "sedentary", label: t("act_sedentary"), hint: t("act_sedentary_h") },
+    { value: "light", label: t("act_light"), hint: t("act_light_h") },
+    { value: "moderate", label: t("act_moderate"), hint: t("act_moderate_h") },
+    { value: "active", label: t("act_active"), hint: t("act_active_h") },
+    { value: "very_active", label: t("act_very_active"), hint: t("act_very_active_h") },
+  ], [t]);
+
+  const goalOptions = useMemo<{ value: GoalType; label: string; emoji: string }[]>(() => [
+    { value: "cut", label: t("goal_cut"), emoji: "🔻" },
+    { value: "maintain", label: t("goal_maintain"), emoji: "⚖️" },
+    { value: "bulk", label: t("goal_bulk"), emoji: "🔺" },
+  ], [t]);
+
   const suggested = calculateProteinGoal(Number(weight), activity, goal);
   const finalGoal = customGoal ? Number(customGoal) : suggested;
 
@@ -47,7 +49,7 @@ function Onboarding() {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
+      if (!user) throw new Error(t("not_signed_in"));
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         display_name: name || user.email?.split("@")[0] || "Whey user",
@@ -61,41 +63,38 @@ function Onboarding() {
         onboarded: true,
       });
       if (error) throw error;
-      toast.success("All set — find your Whey!");
+      toast.success(t("all_set"));
       navigate({ to: "/home", replace: true });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Save failed");
+      toast.error(err instanceof Error ? err.message : t("save_failed"));
     } finally {
       setSaving(false);
     }
   }
 
   const steps = [
-    // Step 0: name
     <div key="name" className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">What should we call you?</h2>
-      <p className="text-sm text-muted-foreground">Your friends will see this name.</p>
-      <input className="w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+      <h2 className="text-2xl font-semibold tracking-tight">{t("onb_name_q")}</h2>
+      <p className="text-sm text-muted-foreground">{t("onb_name_hint")}</p>
+      <input className="w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" placeholder={t("onb_your_name")} value={name} onChange={(e) => setName(e.target.value)} />
     </div>,
-    // Step 1: stats
     <div key="stats" className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">A few stats</h2>
-      <p className="text-sm text-muted-foreground">Helps us suggest a daily target.</p>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("onb_stats")}</h2>
+      <p className="text-sm text-muted-foreground">{t("onb_stats_hint")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Weight (kg)" value={weight} onChange={setWeight} type="number" />
-        <Field label="Height (cm)" value={height} onChange={setHeight} type="number" />
-        <Field label="Age" value={age} onChange={setAge} type="number" />
+        <Field label={t("weight_kg")} value={weight} onChange={setWeight} type="number" />
+        <Field label={t("height_cm")} value={height} onChange={setHeight} type="number" />
+        <Field label={t("age")} value={age} onChange={setAge} type="number" />
         <div>
-          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Sex</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("sex")}</label>
           <select value={sex} onChange={(e) => setSex(e.target.value as "male" | "female" | "other")} className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none">
-            <option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
+            <option value="male">{t("sex_male")}</option><option value="female">{t("sex_female")}</option><option value="other">{t("sex_other")}</option>
           </select>
         </div>
       </div>
     </div>,
-    // Step 2: activity
     <div key="activity" className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">How active are you?</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("onb_activity_q")}</h2>
       <div className="space-y-2">
         {activityOptions.map((o) => (
           <button key={o.value} onClick={() => setActivity(o.value)} className={`w-full text-left rounded-2xl p-4 ring-1 transition ${activity === o.value ? "bg-brand ring-brand-ink" : "bg-surface ring-border"}`}>
@@ -105,9 +104,8 @@ function Onboarding() {
         ))}
       </div>
     </div>,
-    // Step 3: goal
     <div key="goal" className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">What's the plan?</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("onb_goal_q")}</h2>
       <div className="grid grid-cols-3 gap-3">
         {goalOptions.map((o) => (
           <button key={o.value} onClick={() => setGoal(o.value)} className={`rounded-2xl p-4 ring-1 transition flex flex-col items-center gap-1 ${goal === o.value ? "bg-brand ring-brand-ink" : "bg-surface ring-border"}`}>
@@ -117,16 +115,15 @@ function Onboarding() {
         ))}
       </div>
     </div>,
-    // Step 4: confirm
     <div key="confirm" className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">Your daily target</h2>
-      <p className="text-sm text-muted-foreground">Based on your stats, we suggest:</p>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("onb_target")}</h2>
+      <p className="text-sm text-muted-foreground">{t("onb_target_hint")}</p>
       <div className="rounded-[28px] bg-brand p-6 text-brand-ink">
         <div className="text-5xl font-bold">{suggested}<span className="text-2xl">g</span></div>
-        <div className="text-sm font-medium opacity-70 mt-1">protein per day</div>
+        <div className="text-sm font-medium opacity-70 mt-1">{t("protein_per_day")}</div>
       </div>
       <div>
-        <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Override (optional)</label>
+        <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("override_optional")}</label>
         <input type="number" placeholder={String(suggested)} value={customGoal} onChange={(e) => setCustomGoal(e.target.value)} className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" />
       </div>
     </div>,
@@ -148,14 +145,14 @@ function Onboarding() {
       <div className="flex-1">{steps[step]}</div>
       <div className="mt-8 flex gap-3">
         {step > 0 && (
-          <button onClick={() => setStep(step - 1)} className="rounded-2xl bg-surface ring-1 ring-border px-5 py-3.5 text-sm font-medium">Back</button>
+          <button onClick={() => setStep(step - 1)} className="rounded-2xl bg-surface ring-1 ring-border px-5 py-3.5 text-sm font-medium">{t("back")}</button>
         )}
         <button
           disabled={!canNext || saving}
           onClick={() => (isLast ? save() : setStep(step + 1))}
           className="flex-1 rounded-2xl bg-foreground text-brand py-3.5 text-sm font-semibold disabled:opacity-50"
         >
-          {saving ? "Saving…" : isLast ? "Find my Whey" : "Continue"}
+          {saving ? t("saving") : isLast ? t("find_my_whey") : t("continue")}
         </button>
       </div>
     </div>
