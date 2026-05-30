@@ -43,9 +43,7 @@ function AddPage() {
     if (!description.trim() && !imageDataUrl) return;
     setBusy(true);
     try {
-      const result = await estimate({
-        data: { description, image_data_url: imageDataUrl ?? undefined },
-      });
+      const result = await estimate({ data: { description, image_data_url: imageDataUrl ?? undefined } });
       setItems(result.items);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : t("estimate_failed"));
@@ -54,20 +52,11 @@ function AddPage() {
     }
   }
 
-  async function saveItems(
-    rows: Array<{ food_name: string; protein_g: number; quantity?: string | null }>,
-  ) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  async function saveItems(rows: Array<{ food_name: string; protein_g: number; quantity?: string | null }>) {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { error } = await supabase
-      .from("food_log")
-      .insert(rows.map((r) => ({ ...r, user_id: user.id })));
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    const { error } = await supabase.from("food_logs").insert(rows.map((r) => ({ ...r, user_id: user.id })));
+    if (error) { toast.error(error.message); return; }
     toast.success(t("logged_ok"));
     navigate({ to: "/home" });
   }
@@ -75,39 +64,23 @@ function AddPage() {
   async function saveManual() {
     if (!foodName || !protein) return;
     setBusy(true);
-    await saveItems([
-      { food_name: foodName, protein_g: Number(protein), quantity: quantity || null },
-    ]);
+    await saveItems([{ food_name: foodName, protein_g: Number(protein), quantity: quantity || null }]);
     setBusy(false);
   }
 
   return (
     <div>
       <header className="pt-8 pb-6 px-6 flex items-center gap-3">
-        <button
-          onClick={() => navigate({ to: "/home" })}
-          className="size-9 rounded-full bg-surface grid place-items-center"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
+        <button onClick={() => navigate({ to: "/home" })} className="size-9 rounded-full bg-surface grid place-items-center"><ArrowLeft className="size-4" /></button>
         <h1 className="text-2xl font-semibold tracking-tight">{t("add_protein")}</h1>
       </header>
 
       <div className="px-4">
         <div className="grid grid-cols-2 gap-2 bg-surface p-1.5 rounded-2xl mb-6">
-          <button
-            onClick={() => {
-              setMode("ai");
-              setItems(null);
-            }}
-            className={`rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 ${mode === "ai" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
-          >
+          <button onClick={() => { setMode("ai"); setItems(null); }} className={`rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 ${mode === "ai" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
             <Sparkles className="size-4" /> {t("ai_estimate")}
           </button>
-          <button
-            onClick={() => setMode("manual")}
-            className={`rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 ${mode === "manual" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
-          >
+          <button onClick={() => setMode("manual")} className={`rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 ${mode === "manual" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
             <Pencil className="size-4" /> {t("manual")}
           </button>
         </div>
@@ -115,9 +88,7 @@ function AddPage() {
         {mode === "ai" ? (
           <div className="space-y-4">
             <label className="block">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t("describe_ate")}
-              </span>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("describe_ate")}</span>
               <textarea
                 rows={4}
                 value={description}
@@ -132,18 +103,11 @@ function AddPage() {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => {
-                onPickImage(e.target.files?.[0]);
-                e.target.value = "";
-              }}
+              onChange={(e) => { onPickImage(e.target.files?.[0]); e.target.value = ""; }}
             />
             {imageDataUrl ? (
               <div className="relative rounded-2xl overflow-hidden ring-1 ring-border">
-                <img
-                  src={imageDataUrl}
-                  alt="food preview"
-                  className="w-full max-h-64 object-cover"
-                />
+                <img src={imageDataUrl} alt="food preview" className="w-full max-h-64 object-cover" />
                 <button
                   type="button"
                   onClick={() => setImageDataUrl(null)}
@@ -170,11 +134,7 @@ function AddPage() {
               </button>
             )}
 
-            <button
-              disabled={busy || (!description.trim() && !imageDataUrl)}
-              onClick={runEstimate}
-              className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50"
-            >
+            <button disabled={busy || (!description.trim() && !imageDataUrl)} onClick={runEstimate} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
               {busy ? t("estimating") : t("estimate_protein")}
             </button>
 
@@ -182,48 +142,18 @@ function AddPage() {
               <div className="space-y-3 pt-4">
                 <div className="text-sm font-semibold">{t("estimated_breakdown")}</div>
                 {items.map((it, i) => (
-                  <div
-                    key={i}
-                    className="bg-surface rounded-2xl p-3 ring-1 ring-black/5 flex gap-2 items-center"
-                  >
-                    <input
-                      value={it.food_name}
-                      onChange={(e) =>
-                        setItems((cur) =>
-                          cur!.map((x, j) => (j === i ? { ...x, food_name: e.target.value } : x)),
-                        )
-                      }
-                      className="flex-1 bg-transparent text-sm font-medium focus:outline-none"
-                    />
-                    <input
-                      type="number"
-                      value={it.protein_g}
-                      onChange={(e) =>
-                        setItems((cur) =>
-                          cur!.map((x, j) =>
-                            j === i ? { ...x, protein_g: Number(e.target.value) } : x,
-                          ),
-                        )
-                      }
-                      className="w-16 bg-background rounded-lg px-2 py-1 text-sm text-right"
-                    />
+                  <div key={i} className="bg-surface rounded-2xl p-3 ring-1 ring-black/5 flex gap-2 items-center">
+                    <input value={it.food_name} onChange={(e) => setItems((cur) => cur!.map((x, j) => j === i ? { ...x, food_name: e.target.value } : x))} className="flex-1 bg-transparent text-sm font-medium focus:outline-none" />
+                    <input type="number" value={it.protein_g} onChange={(e) => setItems((cur) => cur!.map((x, j) => j === i ? { ...x, protein_g: Number(e.target.value) } : x))} className="w-16 bg-background rounded-lg px-2 py-1 text-sm text-right" />
                     <span className="text-xs text-muted-foreground">g</span>
                   </div>
                 ))}
                 <div className="flex justify-between items-center px-2 pt-2">
                   <span className="text-sm text-muted-foreground">{t("total")}</span>
-                  <span className="font-bold text-brand-ink">
-                    {Math.round(items.reduce((s, i) => s + i.protein_g, 0))}g
-                  </span>
+                  <span className="font-bold text-brand-ink">{Math.round(items.reduce((s, i) => s + i.protein_g, 0))}g</span>
                 </div>
-                <button
-                  onClick={() => saveItems(items)}
-                  className="w-full rounded-2xl bg-brand text-brand-ink py-3.5 font-semibold"
-                >
-                  {t("save_n_items", {
-                    n: items.length,
-                    label: items.length === 1 ? t("item") : t("items"),
-                  })}
+                <button onClick={() => saveItems(items)} className="w-full rounded-2xl bg-brand text-brand-ink py-3.5 font-semibold">
+                  {t("save_n_items", { n: items.length, label: items.length === 1 ? t("item") : t("items") })}
                 </button>
               </div>
             )}
@@ -231,46 +161,20 @@ function AddPage() {
         ) : (
           <div className="space-y-3">
             <label className="block">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {t("food")}
-              </span>
-              <input
-                value={foodName}
-                onChange={(e) => setFoodName(e.target.value)}
-                placeholder={t("food_placeholder")}
-                className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none"
-              />
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("food")}</span>
+              <input value={foodName} onChange={(e) => setFoodName(e.target.value)} placeholder={t("food_placeholder")} className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" />
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {t("protein_g_label")}
-                </span>
-                <input
-                  type="number"
-                  value={protein}
-                  onChange={(e) => setProtein(e.target.value)}
-                  placeholder="30"
-                  className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none"
-                />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("protein_g_label")}</span>
+                <input type="number" value={protein} onChange={(e) => setProtein(e.target.value)} placeholder="30" className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" />
               </label>
               <label className="block">
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {t("qty_optional")}
-                </span>
-                <input
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder={t("qty_placeholder")}
-                  className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none"
-                />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("qty_optional")}</span>
+                <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder={t("qty_placeholder")} className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none" />
               </label>
             </div>
-            <button
-              disabled={busy || !foodName || !protein}
-              onClick={saveManual}
-              className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50"
-            >
+            <button disabled={busy || !foodName || !protein} onClick={saveManual} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
               {busy ? t("saving") : t("log_it")}
             </button>
           </div>

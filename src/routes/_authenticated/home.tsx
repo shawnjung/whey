@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Avatar } from "@/components/Avatar";
-import { startOfTodayISO } from "@/lib/goals";
+import { startOfTodayISO } from "@/lib/goal";
 import { Check, Plus, Utensils } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
@@ -36,7 +36,7 @@ function HomePage() {
 
       const [{ data: myProfile }, { data: myLogs }, { data: friendships }] = await Promise.all([
         supabase.from("profiles").select("id, display_name, avatar_url, protein_goal_g").eq("id", user.id).maybeSingle(),
-        supabase.from("food_logs").select("id, food_name, protein_g, quantity, logged_at").eq("user_id", user.id).order("logged_at", { ascending: false }),
+        supabase.from("food_logs").select("id, food_name, protein_g, quantity, logged_at").eq("user_id", user.id).gte("logged_at", since).order("logged_at", { ascending: false }),
         supabase.from("friendships").select("requester_id, addressee_id, status").eq("status", "accepted"),
       ]);
 
