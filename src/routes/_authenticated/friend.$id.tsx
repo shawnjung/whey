@@ -18,6 +18,7 @@ type Log = { id: string; food_name: string; protein_g: number; logged_at: string
 function FriendDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useT();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [logs, setLogs] = useState<Log[]>([]);
 
