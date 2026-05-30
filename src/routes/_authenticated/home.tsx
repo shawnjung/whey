@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Avatar } from "@/components/Avatar";
 import { startOfTodayISO } from "@/lib/goal";
-import { Check } from "lucide-react";
+import { Check, Plus, Utensils } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — Whey" }] }),
