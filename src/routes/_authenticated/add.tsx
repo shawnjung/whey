@@ -24,13 +24,26 @@ function AddPage() {
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<Item[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const estimate = useServerFn(estimateProtein);
 
+  function onPickImage(file: File | null | undefined) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("image_too_large"));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImageDataUrl(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
+
   async function runEstimate() {
-    if (!description.trim()) return;
+    if (!description.trim() && !imageDataUrl) return;
     setBusy(true);
     try {
-      const result = await estimate({ data: { description } });
+      const result = await estimate({ data: { description, image_data_url: imageDataUrl ?? undefined } });
       setItems(result.items);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : t("estimate_failed"));
