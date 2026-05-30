@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const { t, lang, setLang } = useT();
   const [profile, setProfile] = useState<{
     id: string; display_name: string; avatar_url: string | null;
     weight_kg: number | null; height_cm: number | null; age: number | null;
