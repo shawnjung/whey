@@ -34,7 +34,7 @@ function FriendDetail() {
     })();
   }, [id]);
 
-  if (!profile) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
+  if (!profile) return <div className="p-10 text-center text-muted-foreground">{t("loading")}</div>;
 
   const total = logs.reduce((s, l) => s + Number(l.protein_g), 0);
   const remaining = Math.max(0, profile.protein_goal_g - total);
@@ -52,15 +52,15 @@ function FriendDetail() {
           <div>
             <Avatar name={profile.display_name} url={profile.avatar_url} size={48} rounded="rounded-full" />
             <p className="mt-3 text-brand-ink font-semibold">{Math.round(total)}g / {profile.protein_goal_g}g</p>
-            <p className="text-xs text-brand-ink/70">{remaining > 0 ? `${Math.round(remaining)}g to goal` : "Goal hit 🎉"}</p>
+            <p className="text-xs text-brand-ink/70">{remaining > 0 ? t("g_to_goal", { g: Math.round(remaining) }) : t("goal_hit")}</p>
           </div>
         </div>
       </section>
 
       <section className="px-4">
-        <h2 className="text-sm font-semibold mb-2 px-2">Today's logs</h2>
+        <h2 className="text-sm font-semibold mb-2 px-2">{t("todays_logs")}</h2>
         {logs.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Nothing logged yet today.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t("nothing_today")}</p>
         ) : (
           <div className="space-y-2">
             {logs.map((l) => (
