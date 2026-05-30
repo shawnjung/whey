@@ -5,6 +5,7 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { startOfTodayISO } from "@/lib/goal";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/logs")({
   head: () => ({ meta: [{ title: "Logs — Whey" }] }),
