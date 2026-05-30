@@ -105,7 +105,7 @@ function LoginPage() {
         </form>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex-1 h-px bg-border" /> {t("nav_home") && "or"} <div className="flex-1 h-px bg-border" />
+          <div className="flex-1 h-px bg-border" /> {lang === "ko" ? "또는" : "or"} <div className="flex-1 h-px bg-border" />
         </div>
 
         <button
