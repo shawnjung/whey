@@ -5,6 +5,7 @@ import { Avatar } from "@/components/Avatar";
 import { ProgressRing } from "@/components/ProgressRing";
 import { startOfTodayISO } from "@/lib/goal";
 import { ArrowLeft } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/friend/$id")({
   head: () => ({ meta: [{ title: "Friend — Whey" }] }),
