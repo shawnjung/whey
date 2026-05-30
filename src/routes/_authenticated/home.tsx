@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Avatar } from "@/components/Avatar";
 import { startOfTodayISO } from "@/lib/goal";
-import { Check } from "lucide-react";
+import { Check, Plus, Utensils } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — Whey" }] }),
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 type Profile = { id: string; display_name: string; avatar_url: string | null; protein_goal_g: number };
 type FriendData = { profile: Profile; total: number };
+type Log = { id: string; food_name: string; protein_g: number; quantity: string | null; logged_at: string };
 
 function HomePage() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function HomePage() {
   const [myTotal, setMyTotal] = useState(0);
   const [streak, setStreak] = useState(0);
   const [friends, setFriends] = useState<FriendData[]>([]);
+  const [todayLogs, setTodayLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,13 +34,15 @@ function HomePage() {
 
       const [{ data: myProfile }, { data: myLogs }, { data: friendships }] = await Promise.all([
         supabase.from("profiles").select("id, display_name, avatar_url, protein_goal_g").eq("id", user.id).maybeSingle(),
-        supabase.from("food_logs").select("protein_g, logged_at").eq("user_id", user.id).gte("logged_at", since),
+        supabase.from("food_logs").select("id, food_name, protein_g, quantity, logged_at").eq("user_id", user.id).gte("logged_at", since).order("logged_at", { ascending: false }),
         supabase.from("friendships").select("requester_id, addressee_id, status").eq("status", "accepted"),
       ]);
 
       if (!alive) return;
       setMe(myProfile as Profile);
-      setMyTotal((myLogs ?? []).reduce((s, r) => s + Number(r.protein_g), 0));
+      const logs = (myLogs ?? []) as Log[];
+      setTodayLogs(logs);
+      setMyTotal(logs.reduce((s, r) => s + Number(r.protein_g), 0));
 
       // streak: count consecutive prior days with any log
       const { data: last30 } = await supabase
@@ -112,6 +116,32 @@ function HomePage() {
             </div>
           </div>
         </Link>
+      </section>
+
+      <section className="px-4 mb-10">
+        <div className="flex justify-between items-end mb-4 px-2">
+          <h2 className="text-lg font-semibold">Today's intakes</h2>
+          <Link to="/add" className="text-sm text-muted-foreground flex items-center gap-1"><Plus className="size-4" /> Add</Link>
+        </div>
+        {todayLogs.length === 0 ? (
+          <div className="rounded-[24px] bg-surface p-6 text-center ring-1 ring-black/5">
+            <Utensils className="size-6 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Nothing logged yet today.</p>
+            <button onClick={() => navigate({ to: "/add" })} className="mt-3 rounded-full bg-brand text-brand-ink px-4 py-2 text-sm font-medium">Log your first meal</button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {todayLogs.map((log) => (
+              <div key={log.id} className="bg-surface rounded-[20px] p-4 ring-1 ring-black/5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{log.food_name}</p>
+                  {log.quantity && <p className="text-xs text-muted-foreground">{log.quantity}</p>}
+                </div>
+                <p className="text-sm font-semibold">{Math.round(Number(log.protein_g))}g</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="px-4">
