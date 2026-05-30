@@ -2,7 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const InputSchema = z.object({
-  description: z.string().min(1).max(500),
+  description: z.string().max(500).optional().default(""),
+  image_data_url: z
+    .string()
+    .max(8_000_000)
+    .regex(/^data:image\/(png|jpe?g|webp|gif);base64,/)
+    .optional(),
+}).refine((v) => (v.description && v.description.trim().length > 0) || !!v.image_data_url, {
+  message: "Provide a description or an image",
 });
 
 const ResponseSchema = z.object({
@@ -21,6 +28,15 @@ export const estimateProtein = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
+    const userContent: Array<Record<string, unknown>> = [];
+    const text = data.description?.trim()
+      ? data.description.trim()
+      : "Estimate the protein content of the food shown in this image.";
+    userContent.push({ type: "text", text });
+    if (data.image_data_url) {
+      userContent.push({ type: "image_url", image_url: { url: data.image_data_url } });
+    }
+
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -33,9 +49,9 @@ export const estimateProtein = createServerFn({ method: "POST" })
           {
             role: "system",
             content:
-              "You estimate protein content of foods. Return a JSON object with `items` (each: food_name string, protein_g number) and total_protein_g (sum). Be realistic and concise. Use common food values.",
+              "You estimate protein content of foods. Identify foods (from text and/or the image) and return a JSON object with `items` (each: food_name string, protein_g number) and total_protein_g (sum). Be realistic and concise. Use common food values.",
           },
-          { role: "user", content: data.description },
+          { role: "user", content: userContent },
         ],
         tools: [
           {
