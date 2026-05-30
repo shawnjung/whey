@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculateProteinGoal, type ActivityLevel, type GoalType } from "@/lib/goal";
 import { Avatar } from "@/components/Avatar";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, Camera, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — Whey" }] }),
@@ -21,6 +21,7 @@ function ProfilePage() {
     protein_goal_g: number;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [email, setEmail] = useState("");
 
   useEffect(() => {
@@ -69,6 +70,28 @@ function ProfilePage() {
     navigate({ to: "/login", replace: true });
   }
 
+  async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !profile) return;
+    if (!file.type.startsWith("image/")) { toast.error("Pick an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+      cacheControl: "3600", upsert: true, contentType: file.type,
+    });
+    if (upErr) { setUploading(false); toast.error(upErr.message); return; }
+    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = `${publicUrl}?v=${Date.now()}`;
+    const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+    setUploading(false);
+    if (updErr) { toast.error(updErr.message); return; }
+    set("avatar_url", url);
+    toast.success("Avatar updated");
+  }
+
   return (
     <div>
       <header className="pt-8 pb-6 px-6 flex justify-between items-center">
@@ -78,12 +101,25 @@ function ProfilePage() {
 
       <section className="px-4 space-y-4">
         <div className="bg-surface rounded-3xl p-5 flex items-center gap-4">
-          <Avatar name={profile.display_name} url={profile.avatar_url} size={64} rounded="rounded-full" />
+          <label className="relative cursor-pointer group">
+            <Avatar name={profile.display_name} url={profile.avatar_url} size={64} rounded="rounded-full" />
+            <span className="absolute inset-0 rounded-full bg-black/40 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {uploading ? <Loader2 className="size-5 text-white animate-spin" /> : <Camera className="size-5 text-white" />}
+            </span>
+            {uploading && (
+              <span className="absolute inset-0 rounded-full bg-black/40 grid place-items-center">
+                <Loader2 className="size-5 text-white animate-spin" />
+              </span>
+            )}
+            <input type="file" accept="image/*" onChange={onAvatarChange} disabled={uploading} className="sr-only" />
+          </label>
           <div>
             <p className="font-semibold text-lg">{profile.display_name}</p>
             <p className="text-xs text-muted-foreground">{email}</p>
           </div>
         </div>
+
+
 
         <div className="bg-brand rounded-3xl p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60">Daily protein goal</p>
