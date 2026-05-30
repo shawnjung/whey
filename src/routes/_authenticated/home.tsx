@@ -81,7 +81,7 @@ function HomePage() {
     return () => { alive = false; };
   }, []);
 
-  if (!me) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
+  if (!me) return <div className="p-10 text-center text-muted-foreground">{t("loading")}</div>;
 
   const remaining = Math.max(0, me.protein_goal_g - myTotal);
   const pct = me.protein_goal_g > 0 ? Math.round((myTotal / me.protein_goal_g) * 100) : 0;
@@ -89,7 +89,7 @@ function HomePage() {
   return (
     <div>
       <header className="pt-8 pb-6 px-6 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Whey</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("app_name")}</h1>
         <Link to="/profile"><Avatar name={me.display_name} url={me.avatar_url} size={40} rounded="rounded-full" /></Link>
       </header>
 
@@ -98,22 +98,22 @@ function HomePage() {
           <div className="bg-brand rounded-[32px] p-6 ring-1 ring-black/5 relative overflow-hidden">
             <div className="flex justify-between items-start">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60 mb-1">Today's progress</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60 mb-1">{t("todays_progress")}</div>
                 <p className="text-2xl font-semibold text-brand-ink leading-tight text-balance max-w-[20ch]">
-                  {remaining > 0 ? `On your Whey — ${Math.round(remaining)}g to go` : "Goal crushed. Look at you!"}
+                  {remaining > 0 ? t("on_your_whey", { g: Math.round(remaining) }) : t("goal_crushed")}
                 </p>
               </div>
               {streak > 0 && (
                 <div className="bg-brand-ink text-brand px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-                  🔥 {streak}-day streak
+                  {t("streak_days", { n: streak })}
                 </div>
               )}
             </div>
             <div className="mt-6 flex items-center gap-8">
               <ProgressRing value={myTotal} goal={me.protein_goal_g} />
               <div className="flex flex-col gap-1">
-                <p className="text-base text-brand-ink/80">Goal: {me.protein_goal_g}g</p>
-                <p className="text-sm text-brand-ink/60">{pct}% complete</p>
+                <p className="text-base text-brand-ink/80">{t("goal_label", { g: me.protein_goal_g })}</p>
+                <p className="text-sm text-brand-ink/60">{t("pct_complete", { p: pct })}</p>
               </div>
             </div>
           </div>
@@ -122,17 +122,17 @@ function HomePage() {
 
       <section className="px-4 mb-10">
         <div className="flex justify-between items-end mb-6 px-2">
-          <h2 className="text-lg font-semibold">Friend activity</h2>
-          <Link to="/friends" className="text-sm text-muted-foreground">See all</Link>
+          <h2 className="text-lg font-semibold">{t("friend_activity")}</h2>
+          <Link to="/friends" className="text-sm text-muted-foreground">{t("see_all")}</Link>
         </div>
 
         {loading ? (
-          <div className="text-center text-sm text-muted-foreground py-8">Loading friends…</div>
+          <div className="text-center text-sm text-muted-foreground py-8">{t("loading_friends")}</div>
         ) : friends.length === 0 ? (
           <div className="rounded-[24px] bg-surface p-8 text-center">
-            <p className="text-sm text-muted-foreground mb-3">No friends yet — solo grind energy.</p>
+            <p className="text-sm text-muted-foreground mb-3">{t("no_friends_solo")}</p>
             <button onClick={() => navigate({ to: "/friends" })} className="rounded-full bg-foreground text-brand px-4 py-2 text-sm font-medium">
-              Find friends
+              {t("find_friends")}
             </button>
           </div>
         ) : (
@@ -148,7 +148,7 @@ function HomePage() {
                       <div>
                         <p className="text-base font-medium">{f.profile.display_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {hit ? "Goal achieved" : `${Math.round(f.total)}g / ${f.profile.protein_goal_g}g`}
+                          {hit ? t("goal_achieved") : `${Math.round(f.total)}g / ${f.profile.protein_goal_g}g`}
                         </p>
                       </div>
                     </div>
@@ -172,14 +172,14 @@ function HomePage() {
 
       <section className="px-4 mb-10">
         <div className="flex justify-between items-end mb-4 px-2">
-          <h2 className="text-lg font-semibold">Today's intakes</h2>
-          <Link to="/add" className="text-sm text-muted-foreground flex items-center gap-1"><Plus className="size-4" /> Add</Link>
+          <h2 className="text-lg font-semibold">{t("todays_intakes")}</h2>
+          <Link to="/add" className="text-sm text-muted-foreground flex items-center gap-1"><Plus className="size-4" /> {t("add")}</Link>
         </div>
         {todayLogs.length === 0 ? (
           <div className="rounded-[24px] bg-surface p-6 text-center ring-1 ring-black/5">
             <Utensils className="size-6 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Nothing logged yet today.</p>
-            <button onClick={() => navigate({ to: "/add" })} className="mt-3 rounded-full bg-brand text-brand-ink px-4 py-2 text-sm font-medium">Log your first meal</button>
+            <p className="text-sm text-muted-foreground">{t("nothing_today")}</p>
+            <button onClick={() => navigate({ to: "/add" })} className="mt-3 rounded-full bg-brand text-brand-ink px-4 py-2 text-sm font-medium">{t("log_first_meal")}</button>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -198,3 +198,4 @@ function HomePage() {
     </div>
   );
 }
+
