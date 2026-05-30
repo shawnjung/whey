@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateProtein } from "@/lib/protein.functions";
 import { toast } from "sonner";
-import { Sparkles, Pencil, ArrowLeft } from "lucide-react";
+import { Sparkles, Pencil, ArrowLeft, ImagePlus, X } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/add")({
