@@ -119,14 +119,7 @@ function ProfilePage() {
           </div>
         </div>
 
-      <section className="px-4 space-y-4">
-        <div className="bg-surface rounded-3xl p-5 flex items-center gap-4">
-          <Avatar name={profile.display_name} url={profile.avatar_url} size={64} rounded="rounded-full" />
-          <div>
-            <p className="font-semibold text-lg">{profile.display_name}</p>
-            <p className="text-xs text-muted-foreground">{email}</p>
-          </div>
-        </div>
+
 
         <div className="bg-brand rounded-3xl p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60">Daily protein goal</p>
