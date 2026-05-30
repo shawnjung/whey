@@ -5,6 +5,7 @@ import { calculateProteinGoal, type ActivityLevel, type GoalType } from "@/lib/g
 import { Avatar } from "@/components/Avatar";
 import { toast } from "sonner";
 import { LogOut, Camera, Loader2 } from "lucide-react";
+import { useT, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — Whey" }] }),
