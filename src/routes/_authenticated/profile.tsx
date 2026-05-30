@@ -21,6 +21,7 @@ function ProfilePage() {
     protein_goal_g: number;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [email, setEmail] = useState("");
 
   useEffect(() => {
