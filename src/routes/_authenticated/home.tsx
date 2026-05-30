@@ -34,13 +34,15 @@ function HomePage() {
 
       const [{ data: myProfile }, { data: myLogs }, { data: friendships }] = await Promise.all([
         supabase.from("profiles").select("id, display_name, avatar_url, protein_goal_g").eq("id", user.id).maybeSingle(),
-        supabase.from("food_logs").select("protein_g, logged_at").eq("user_id", user.id).gte("logged_at", since),
+        supabase.from("food_logs").select("id, food_name, protein_g, quantity, logged_at").eq("user_id", user.id).gte("logged_at", since).order("logged_at", { ascending: false }),
         supabase.from("friendships").select("requester_id, addressee_id, status").eq("status", "accepted"),
       ]);
 
       if (!alive) return;
       setMe(myProfile as Profile);
-      setMyTotal((myLogs ?? []).reduce((s, r) => s + Number(r.protein_g), 0));
+      const logs = (myLogs ?? []) as Log[];
+      setTodayLogs(logs);
+      setMyTotal(logs.reduce((s, r) => s + Number(r.protein_g), 0));
 
       // streak: count consecutive prior days with any log
       const { data: last30 } = await supabase
