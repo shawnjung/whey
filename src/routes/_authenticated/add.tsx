@@ -97,7 +97,44 @@ function AddPage() {
                 className="mt-1 w-full rounded-2xl bg-surface px-4 py-3.5 ring-1 ring-border focus:ring-2 focus:ring-brand-ink focus:outline-none resize-none"
               />
             </label>
-            <button disabled={busy || !description.trim()} onClick={runEstimate} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { onPickImage(e.target.files?.[0]); e.target.value = ""; }}
+            />
+            {imageDataUrl ? (
+              <div className="relative rounded-2xl overflow-hidden ring-1 ring-border">
+                <img src={imageDataUrl} alt="food preview" className="w-full max-h-64 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImageDataUrl(null)}
+                  className="absolute top-2 right-2 size-8 rounded-full bg-background/90 grid place-items-center ring-1 ring-border"
+                  aria-label={t("remove_photo")}
+                >
+                  <X className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium ring-1 ring-border"
+                >
+                  {t("change_photo")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-2xl bg-surface ring-1 ring-border py-3.5 font-medium flex items-center justify-center gap-2 text-muted-foreground"
+              >
+                <ImagePlus className="size-4" /> {t("add_photo")}
+              </button>
+            )}
+
+            <button disabled={busy || (!description.trim() && !imageDataUrl)} onClick={runEstimate} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
               {busy ? t("estimating") : t("estimate_protein")}
             </button>
 
