@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/logs")({
 type Log = { id: string; food_name: string; protein_g: number; logged_at: string };
 
 function LogsPage() {
+  const { t } = useT();
   const [logs, setLogs] = useState<Log[]>([]);
   const [goal, setGoal] = useState(0);
   const [loading, setLoading] = useState(true);
