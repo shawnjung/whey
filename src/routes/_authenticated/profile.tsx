@@ -36,7 +36,7 @@ function ProfilePage() {
     })();
   }, []);
 
-  if (!profile) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
+  if (!profile) return <div className="p-10 text-center text-muted-foreground">{t("loading")}</div>;
 
   function set<K extends keyof NonNullable<typeof profile>>(k: K, v: NonNullable<typeof profile>[K]) {
     setProfile((p) => p ? { ...p, [k]: v } : p);
@@ -56,7 +56,7 @@ function ProfilePage() {
       protein_goal_g: profile.protein_goal_g,
     }).eq("id", profile.id);
     setSaving(false);
-    if (error) toast.error(error.message); else toast.success("Saved");
+    if (error) toast.error(error.message); else toast.success(t("saved"));
   }
 
   async function recalc() {
@@ -64,7 +64,7 @@ function ProfilePage() {
     if (!profile.weight_kg || !profile.activity_level || !profile.goal_type) return;
     const g = calculateProteinGoal(Number(profile.weight_kg), profile.activity_level, profile.goal_type);
     set("protein_goal_g", g);
-    toast.success(`Suggested: ${g}g`);
+    toast.success(t("suggested_g", { g }));
   }
 
   async function signOut() {
@@ -76,8 +76,8 @@ function ProfilePage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !profile) return;
-    if (!file.type.startsWith("image/")) { toast.error("Pick an image file"); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error(t("pick_image")); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t("max_5mb")); return; }
     setUploading(true);
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
@@ -91,14 +91,14 @@ function ProfilePage() {
     setUploading(false);
     if (updErr) { toast.error(updErr.message); return; }
     set("avatar_url", url);
-    toast.success("Avatar updated");
+    toast.success(t("avatar_updated"));
   }
 
   return (
     <div>
       <header className="pt-8 pb-6 px-6 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <button onClick={signOut} className="size-9 rounded-full bg-surface grid place-items-center" aria-label="Sign out"><LogOut className="size-4" /></button>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("profile")}</h1>
+        <button onClick={signOut} className="size-9 rounded-full bg-surface grid place-items-center" aria-label={t("sign_out")}><LogOut className="size-4" /></button>
       </header>
 
       <section className="px-4 space-y-4">
@@ -121,49 +121,54 @@ function ProfilePage() {
           </div>
         </div>
 
-
-
         <div className="bg-brand rounded-3xl p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60">Daily protein goal</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink/60">{t("daily_protein_goal")}</p>
           <div className="flex items-end gap-1 mt-1">
             <input type="number" value={profile.protein_goal_g} onChange={(e) => set("protein_goal_g", Number(e.target.value))} className="text-4xl font-bold text-brand-ink bg-transparent w-24 focus:outline-none" />
             <span className="text-xl text-brand-ink/60 mb-1">g</span>
           </div>
-          <button onClick={recalc} className="mt-2 text-xs font-medium text-brand-ink/80 underline-offset-4 hover:underline">Recalculate from stats</button>
+          <button onClick={recalc} className="mt-2 text-xs font-medium text-brand-ink/80 underline-offset-4 hover:underline">{t("recalc_from_stats")}</button>
         </div>
 
-        <Group title="Profile">
-          <Row label="Name"><input value={profile.display_name} onChange={(e) => set("display_name", e.target.value)} className="bg-transparent text-right focus:outline-none" /></Row>
+        <Group title={t("profile")}>
+          <Row label={t("name")}><input value={profile.display_name} onChange={(e) => set("display_name", e.target.value)} className="bg-transparent text-right focus:outline-none" /></Row>
+          <Row label={t("language")}>
+            <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} className="bg-transparent text-right focus:outline-none">
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+            </select>
+          </Row>
         </Group>
 
-        <Group title="Health factors">
-          <Row label="Weight (kg)"><input type="number" value={profile.weight_kg ?? ""} onChange={(e) => set("weight_kg", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
-          <Row label="Height (cm)"><input type="number" value={profile.height_cm ?? ""} onChange={(e) => set("height_cm", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
-          <Row label="Age"><input type="number" value={profile.age ?? ""} onChange={(e) => set("age", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
-          <Row label="Sex">
+        <Group title={t("health_factors")}>
+          <Row label={t("weight_kg")}><input type="number" value={profile.weight_kg ?? ""} onChange={(e) => set("weight_kg", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
+          <Row label={t("height_cm")}><input type="number" value={profile.height_cm ?? ""} onChange={(e) => set("height_cm", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
+          <Row label={t("age")}><input type="number" value={profile.age ?? ""} onChange={(e) => set("age", e.target.value ? Number(e.target.value) : null)} className="bg-transparent text-right w-24 focus:outline-none" /></Row>
+          <Row label={t("sex")}>
             <select value={profile.sex ?? "other"} onChange={(e) => set("sex", e.target.value as "male" | "female" | "other")} className="bg-transparent text-right focus:outline-none">
-              <option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
+              <option value="male">{t("sex_male")}</option><option value="female">{t("sex_female")}</option><option value="other">{t("sex_other")}</option>
             </select>
           </Row>
-          <Row label="Activity">
+          <Row label={t("activity")}>
             <select value={profile.activity_level ?? "moderate"} onChange={(e) => set("activity_level", e.target.value as ActivityLevel)} className="bg-transparent text-right focus:outline-none">
-              <option value="sedentary">Sedentary</option><option value="light">Light</option><option value="moderate">Moderate</option><option value="active">Active</option><option value="very_active">Very active</option>
+              <option value="sedentary">{t("act_sedentary")}</option><option value="light">{t("act_light")}</option><option value="moderate">{t("act_moderate")}</option><option value="active">{t("act_active")}</option><option value="very_active">{t("act_very_active")}</option>
             </select>
           </Row>
-          <Row label="Goal">
+          <Row label={t("goal")}>
             <select value={profile.goal_type ?? "maintain"} onChange={(e) => set("goal_type", e.target.value as GoalType)} className="bg-transparent text-right focus:outline-none">
-              <option value="cut">Cut</option><option value="maintain">Maintain</option><option value="bulk">Bulk</option>
+              <option value="cut">{t("goal_cut")}</option><option value="maintain">{t("goal_maintain")}</option><option value="bulk">{t("goal_bulk")}</option>
             </select>
           </Row>
         </Group>
 
         <button onClick={save} disabled={saving} className="w-full rounded-2xl bg-foreground text-brand py-3.5 font-semibold disabled:opacity-50">
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? t("saving") : t("save")}
         </button>
       </section>
     </div>
   );
 }
+
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
