@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 type Profile = { id: string; display_name: string; avatar_url: string | null; protein_goal_g: number };
 type FriendData = { profile: Profile; total: number };
+type Log = { id: string; food_name: string; protein_g: number; quantity: string | null; logged_at: string };
 
 function HomePage() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function HomePage() {
   const [myTotal, setMyTotal] = useState(0);
   const [streak, setStreak] = useState(0);
   const [friends, setFriends] = useState<FriendData[]>([]);
+  const [todayLogs, setTodayLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
