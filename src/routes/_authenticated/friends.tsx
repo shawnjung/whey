@@ -15,6 +15,7 @@ type Profile = { id: string; display_name: string; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" };
 
 function FriendsPage() {
+  const { t } = useT();
   const [me, setMe] = useState<string>("");
   const [friendships, setFriendships] = useState<Friendship[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
