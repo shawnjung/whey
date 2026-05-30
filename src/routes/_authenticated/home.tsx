@@ -18,6 +18,7 @@ type Log = { id: string; food_name: string; protein_g: number; quantity: string 
 
 function HomePage() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [me, setMe] = useState<Profile | null>(null);
   const [myTotal, setMyTotal] = useState(0);
   const [streak, setStreak] = useState(0);
